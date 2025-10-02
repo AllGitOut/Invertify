@@ -297,7 +297,7 @@ export default function App() {
           marginBottom: '16px'
         }}>
           <img 
-            src="/Invertify_LOGO.png" 
+            src="./Invertify_LOGO.png" 
             alt="Invertify - Image Color Inverter" 
             style={{ 
               height: '150px',
