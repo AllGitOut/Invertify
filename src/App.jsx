@@ -259,8 +259,19 @@ export default function App() {
     const baseName = originalName.join('.')
     const filename = `${baseName}_inverted.png`
 
-    // For mobile devices, try Web Share API first
-    if (isMobile && navigator.share && navigator.canShare) {
+    // Traditional download method - ALWAYS try this first for desktop reliability
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(invertedBlob)
+    link.download = filename
+    
+    // Check if this is a mobile device AND if Web Share API is available
+    const isActuallyMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && 
+                             'ontouchstart' in window &&
+                             navigator.share && 
+                             navigator.canShare
+    
+    // For mobile devices only, try Web Share API first
+    if (isActuallyMobile) {
       try {
         // Create a File object for sharing
         const file = new File([invertedBlob], filename, { type: 'image/png' })
@@ -272,38 +283,28 @@ export default function App() {
             text: 'Check out this color-inverted image!',
             files: [file]
           })
-          return // Success! User can save to gallery via share menu
+          URL.revokeObjectURL(link.href)
+          return // Success! User saved via share menu
         }
       } catch (error) {
         console.log('Web Share failed, falling back to download:', error)
         // Fall through to traditional download
       }
     }
-
-    // Traditional download method (works for desktop and mobile fallback)
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(invertedBlob)
-    link.download = filename
     
-    // Different behavior for mobile vs desktop
+    // Desktop or fallback behavior - standard file download
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    
+    // Show appropriate message
     if (isMobile) {
-      // Mobile: Open in new tab with instructions
-      link.target = '_blank'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      
-      // Show mobile-specific instructions after a delay
+      // Mobile fallback: open in new tab with instructions
       setTimeout(() => {
         alert('💡 Mobile Tip: Long-press the image and select "Save to Photos" to add it to your gallery!')
       }, 1500)
     } else {
-      // Desktop: Standard download to Downloads folder
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      
-      // Show desktop confirmation
+      // Desktop: confirm download location
       setTimeout(() => {
         alert(`✅ Image saved as "${filename}" to your Downloads folder!`)
       }, 500)
