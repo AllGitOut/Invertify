@@ -259,8 +259,8 @@ export default function App() {
     const baseName = originalName.join('.')
     const filename = `${baseName}_inverted.png`
 
-    // Check if device supports Web Share API (most mobile devices)
-    if (navigator.share && navigator.canShare) {
+    // For mobile devices, try Web Share API first
+    if (isMobile && navigator.share && navigator.canShare) {
       try {
         // Create a File object for sharing
         const file = new File([invertedBlob], filename, { type: 'image/png' })
@@ -280,23 +280,35 @@ export default function App() {
       }
     }
 
-    // Fallback: Traditional download method
+    // Traditional download method (works for desktop and mobile fallback)
     const link = document.createElement('a')
     link.href = URL.createObjectURL(invertedBlob)
     link.download = filename
     
-    // For mobile browsers, open in new tab so user can long-press to save
+    // Different behavior for mobile vs desktop
     if (isMobile) {
+      // Mobile: Open in new tab with instructions
       link.target = '_blank'
-      // Add instructions for mobile users
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      // Show mobile-specific instructions after a delay
       setTimeout(() => {
         alert('💡 Mobile Tip: Long-press the image and select "Save to Photos" to add it to your gallery!')
-      }, 1000)
+      }, 1500)
+    } else {
+      // Desktop: Standard download to Downloads folder
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      // Show desktop confirmation
+      setTimeout(() => {
+        alert(`✅ Image saved as "${filename}" to your Downloads folder!`)
+      }, 500)
     }
     
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
     URL.revokeObjectURL(link.href)
   }
 
@@ -617,7 +629,7 @@ export default function App() {
                 minWidth: '200px'
               }}
             >
-              💾 Save to Gallery
+              💾 Download Image
             </button>
           </div>
         </section>
