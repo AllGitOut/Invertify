@@ -15,6 +15,7 @@ export default function App() {
   const [initialPinchDistance, setInitialPinchDistance] = useState(0)
   const [initialZoomLevel, setInitialZoomLevel] = useState(1)
   const fileInputRef = useRef(null)
+  const cameraInputRef = useRef(null)
   const zoomImageRef = useRef(null)
 
   // Cleanup object URLs on component unmount
@@ -300,7 +301,7 @@ export default function App() {
             src="./Invertify_LOGO.png" 
             alt="Invertify - Image Color Inverter" 
             style={{ 
-              height: '150px',
+              height: '120px',
               width: 'auto'
             }} 
           />
@@ -351,30 +352,66 @@ export default function App() {
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            onChange={(e) => handleFileSelect(e.target.files[0])}
+            style={{ display: 'none' }}
+          />
+          
+          {/* Camera input for direct capture */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
             capture="environment"
             onChange={(e) => handleFileSelect(e.target.files[0])}
             style={{ display: 'none' }}
           />
           
-          <button
-            style={{
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '12px 24px',
-              fontSize: '1rem',
-              cursor: 'pointer',
-              minHeight: '44px',
-              minWidth: '120px'
-            }}
-            onClick={(e) => {
-              e.stopPropagation()
-              fileInputRef.current?.click()
-            }}
-          >
-            Choose Image
-          </button>
+          <div style={{ 
+            display: 'flex', 
+            gap: '12px', 
+            flexWrap: 'wrap',
+            justifyContent: 'center' 
+          }}>
+            <button
+              style={{
+                backgroundColor: '#007bff',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '12px 24px',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                minHeight: '44px',
+                minWidth: '120px'
+              }}
+              onClick={(e) => {
+                e.stopPropagation()
+                fileInputRef.current?.click()
+              }}
+            >
+              📁 Choose Photo
+            </button>
+            
+            <button
+              style={{
+                backgroundColor: '#28a745',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '12px 24px',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                minHeight: '44px',
+                minWidth: '120px'
+              }}
+              onClick={(e) => {
+                e.stopPropagation()
+                cameraInputRef.current?.click()
+              }}
+            >
+              📸 Take Photo
+            </button>
+          </div>
         </section>
       )}
 
