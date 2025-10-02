@@ -18,6 +18,9 @@ export default function App() {
   const cameraInputRef = useRef(null)
   const zoomImageRef = useRef(null)
 
+  // Mobile device detection
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
   // Cleanup object URLs on component unmount
   useEffect(() => {
     return () => {
@@ -246,18 +249,50 @@ export default function App() {
     }
   }
 
-  // Handle download
-  const handleDownload = () => {
+  // Handle download with mobile-friendly options
+  const handleDownload = async () => {
     if (!invertedBlob || !selectedFile) return
 
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(invertedBlob)
-    
     // Create filename with _inverted suffix
     const originalName = selectedFile.name.split('.')
     const extension = originalName.pop()
     const baseName = originalName.join('.')
-    link.download = `${baseName}_inverted.png`
+    const filename = `${baseName}_inverted.png`
+
+    // Check if device supports Web Share API (most mobile devices)
+    if (navigator.share && navigator.canShare) {
+      try {
+        // Create a File object for sharing
+        const file = new File([invertedBlob], filename, { type: 'image/png' })
+        
+        // Check if we can share files
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: 'Inverted Image from Invertify',
+            text: 'Check out this color-inverted image!',
+            files: [file]
+          })
+          return // Success! User can save to gallery via share menu
+        }
+      } catch (error) {
+        console.log('Web Share failed, falling back to download:', error)
+        // Fall through to traditional download
+      }
+    }
+
+    // Fallback: Traditional download method
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(invertedBlob)
+    link.download = filename
+    
+    // For mobile browsers, open in new tab so user can long-press to save
+    if (isMobile) {
+      link.target = '_blank'
+      // Add instructions for mobile users
+      setTimeout(() => {
+        alert('💡 Mobile Tip: Long-press the image and select "Save to Photos" to add it to your gallery!')
+      }, 1000)
+    }
     
     document.body.appendChild(link)
     link.click()
@@ -582,7 +617,7 @@ export default function App() {
                 minWidth: '200px'
               }}
             >
-              ⬇️ Download Inverted Image
+              💾 Save to Gallery
             </button>
           </div>
         </section>
